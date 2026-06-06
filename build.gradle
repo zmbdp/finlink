@@ -61,22 +61,11 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-// ==================== Jib 一键推送镜像配置 ====================
-jib {
-    from {
-        image = 'eclipse-temurin:8-jre-alpine'
-    }
-    to {
-        image = 'crpi-otuh3k08p4yxr3tv.cn-shanghai.personal.cr.aliyuncs.com/finlink/finlink:1.0.0'
-        auth {
-            username = '稚名不带撇'
-            password = '@Hf173503494'
-        }
-    }
-    container {
-        ports = ['10030']
-        environment = ['SPRING_PROFILES_ACTIVE': 'prd']
-        jvmFlags = ['-Xms256m', '-Xmx512m', '-Dfile.encoding=UTF-8']
-        creationTime = 'USE_CURRENT_TIMESTAMP'
-    }
+// 自定义 bootJar 输出路径
+bootJar {
+    // 修改输出目录到 deploy/prd/app/build/libs
+    destinationDirectory = file('deploy/prd/app/build/libs')
+    // 保持 jar 包名称一致
+    archiveBaseName = 'finlink'
+    archiveVersion = '1.0.0'
 }
