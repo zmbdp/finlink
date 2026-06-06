@@ -26,6 +26,7 @@ import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -51,9 +52,18 @@ public class FlowServiceImpl implements IFlowService {
                 new Page<>(reqDTO.getPageNum(), reqDTO.getPageSize()),
                 buildQueryWrapper(reqDTO));
 
+        Map<String, String> tradeTypeNameMap = getTradeTypeNameMap();
+        List<FlowVO> voList = page.getRecords().stream().map(flow -> {
+            FlowVO vo = BeanCopyUtil.copyProperties(flow, FlowVO.class);
+            if (StringUtils.isNotBlank(flow.getTradeType())) {
+                vo.setTradeType(tradeTypeNameMap.getOrDefault(flow.getTradeType(), flow.getTradeType()));
+            }
+            return vo;
+        }).collect(Collectors.toList());
+
         FlowPageVO pageVO = new FlowPageVO();
         pageVO.setTotal(page.getTotal());
-        pageVO.setRecords(BeanCopyUtil.copyListProperties(page.getRecords(), FlowVO.class));
+        pageVO.setRecords(voList);
         return pageVO;
     }
 
@@ -82,15 +92,21 @@ public class FlowServiceImpl implements IFlowService {
     @Override
     public void export(FlowQueryReqDTO reqDTO, HttpServletResponse response) {
         List<TransactionFlow> list = transactionFlowMapper.selectList(buildQueryWrapper(reqDTO));
-        for (TransactionFlow flow : list) {
-            if (flow.getIncome() == null) {
-                flow.setIncome(BigDecimal.ZERO);
+        Map<String, String> tradeTypeNameMap = getTradeTypeNameMap();
+
+        List<FlowVO> voList = list.stream().map(flow -> {
+            FlowVO vo = BeanCopyUtil.copyProperties(flow, FlowVO.class);
+            if (vo.getIncome() == null) {
+                vo.setIncome(BigDecimal.ZERO);
             }
-            if (flow.getExpense() == null) {
-                flow.setExpense(BigDecimal.ZERO);
+            if (vo.getExpense() == null) {
+                vo.setExpense(BigDecimal.ZERO);
             }
-        }
-        List<FlowVO> voList = BeanCopyUtil.copyListProperties(list, FlowVO.class);
+            if (StringUtils.isNotBlank(flow.getTradeType())) {
+                vo.setTradeType(tradeTypeNameMap.getOrDefault(flow.getTradeType(), flow.getTradeType()));
+            }
+            return vo;
+        }).collect(Collectors.toList());
 
         String fileName = "流水列表_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".xlsx";
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -105,13 +121,37 @@ public class FlowServiceImpl implements IFlowService {
     }
 
     private LambdaQueryWrapper<TransactionFlow> buildQueryWrapper(FlowQueryReqDTO reqDTO) {
+        String tradeTypeId = null;
+        if (StringUtils.isNotBlank(reqDTO.getTradeType())) {
+            tradeTypeId = getTradeTypeIdByName(reqDTO.getTradeType());
+        }
+
         return new LambdaQueryWrapper<TransactionFlow>()
                 .like(StringUtils.isNotBlank(reqDTO.getOurCompany()), TransactionFlow::getOurCompany, reqDTO.getOurCompany())
                 .eq(StringUtils.isNotBlank(reqDTO.getOurAccount()), TransactionFlow::getOurAccount, reqDTO.getOurAccount())
                 .eq(StringUtils.isNotBlank(reqDTO.getCurrency()), TransactionFlow::getCurrency, reqDTO.getCurrency())
-                .eq(StringUtils.isNotBlank(reqDTO.getTradeType()), TransactionFlow::getTradeType, reqDTO.getTradeType())
+                .eq(StringUtils.isNotBlank(tradeTypeId), TransactionFlow::getTradeType, tradeTypeId)
                 .ge(reqDTO.getStartTime() != null, TransactionFlow::getCreateTime, reqDTO.getStartTime())
                 .le(reqDTO.getEndTime() != null, TransactionFlow::getCreateTime, reqDTO.getEndTime())
                 .orderByDesc(TransactionFlow::getCreateTime);
+    }
+
+    private Map<String, String> getTradeTypeNameMap() {
+        List<TradeType> tradeTypes = tradeTypeMapper.selectList(
+                new LambdaQueryWrapper<TradeType>()
+                        .select(TradeType::getId, TradeType::getTypeName)
+        );
+        return tradeTypes.stream()
+                .filter(tt -> tt.getId() != null)
+                .collect(Collectors.toMap(tt -> String.valueOf(tt.getId()), TradeType::getTypeName));
+    }
+
+    private String getTradeTypeIdByName(String typeName) {
+        TradeType tradeType = tradeTypeMapper.selectOne(
+                new LambdaQueryWrapper<TradeType>()
+                        .eq(TradeType::getTypeName, typeName)
+                        .last("LIMIT 1")
+        );
+        return tradeType != null ? String.valueOf(tradeType.getId()) : null;
     }
 }
