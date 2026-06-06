@@ -50,6 +50,11 @@ dependencies {
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 }
 
 tasks.named('test') {
@@ -62,10 +67,10 @@ jib {
         image = 'eclipse-temurin:8-jre-alpine'
     }
     to {
-        image = '你的阿里云镜像仓库地址/镜像名称:镜像版本'
+        image = 'crpi-otuh3k08p4yxr3tv.cn-shanghai.personal.cr.aliyuncs.com/finlink/finlink:1.0.0'
         auth {
-            username = '你的阿里云手机号/邮箱号'
-            password = '你的阿里云镜像仓库密码'
+            username = '稚名不带撇'
+            password = '@Hf173503494'
         }
     }
     container {
