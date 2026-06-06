@@ -1,4 +1,4 @@
-USE `finlink_dev`;
+USE `finlink_prd`;
 
 DROP TABLE IF EXISTS `sys_user`;
 CREATE TABLE `sys_user`
