@@ -51,7 +51,7 @@ services:
 
   finlink-backend:
     container_name: finlink-backend
-    image: crpi-otuh3k08p4yxr3tv.cn-shanghai.personal.cr.aliyuncs.com/finlink/finlink:1.0.0
+    build: ./
     ports:
       - "10030:10030"
     depends_on:
