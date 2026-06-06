@@ -1,0 +1,96 @@
+version: '3.8'
+#启动命令 docker compose -p finlink -f docker-compose-mid.yml up -d
+services:
+  finlink-mysql:
+    container_name: finlink-mysql
+    image: mysql:8.4.2
+    ports:
+      - "3306:3306"
+    volumes:
+      # 数据挂载
+      - ../data/finlinkdata/mysql/data:/var/lib/mysql
+      # 配置挂载
+      - ./mysql/init/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql/sql:/opt/sql
+    command: [
+      'mysqld',
+      '--innodb-buffer-pool-size=80M',
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci',
+      '--default-time-zone=+8:00',
+      '--lower-case-table-names=1',
+      '--explicit_defaults_for_timestamp=true',
+      '--server-id=1',
+      '--log-bin=mysql-bin',
+      '--binlog-ignore-db=mysql',
+      '--binlog-cache-size=256M',
+      '--binlog-format=ROW',
+      '--max_connections=2000'
+    ]
+    restart: always
+    networks:
+      - finlink_network_prd
+    healthcheck:
+      test: mysql --user=zmbdpprd -h127.0.0.1 --password='Hf@173503494' -e "SELECT 1;"
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: Hf@173503494
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  finlink-backend:
+    container_name: finlink-backend
+    image: crpi-otuh3k08p4yxr3tv.cn-shanghai.personal.cr.aliyuncs.com/finlink/finlink:1.0.0
+    ports:
+      - "10030:10030"
+    depends_on:
+      finlink-mysql:
+        condition: service_healthy
+    restart: always
+    networks:
+      - finlink_network_prd
+    environment:
+      TZ: Asia/Shanghai
+      SPRING_PROFILES_ACTIVE: prd
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  finlink-web:
+    image: nginx:1.24.0
+    container_name: finlink-web
+    restart: always
+    networks:
+      - finlink_network_prd
+    ports:
+      - "80:80"
+    depends_on:
+      - finlink-backend
+    volumes:
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/web/dist:/data/finlink/web/dist
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+
+networks:
+  finlink_network_prd:
