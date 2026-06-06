@@ -86,7 +86,6 @@ public class ShiroConfig {
 
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
         filterChainDefinitionMap.put("/api/login", "anon");
-        filterChainDefinitionMap.put("/api/flow/export", "anon");
         filterChainDefinitionMap.put("/api/unauth", "anon");
         // 其他所有接口使用 JWT 过滤器
         filterChainDefinitionMap.put("/**", "jwt");
