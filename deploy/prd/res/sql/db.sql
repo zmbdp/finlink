@@ -71,7 +71,7 @@ CREATE TABLE `trade_type`
 
 -- 初始密码: admin123 (BCrypt加密)
 INSERT INTO sys_user(`username`, `password`, `nickname`, `status`)
-VALUES ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVXg7zxFnbNpvfGmHMQdCFIente', '系统管理员', 1);
+VALUES ('admin', '$2a$10$s1WjTHpqgbecsliXY/P7CulfFXL1I1rEP8psDkc3dTdn5Dstv0im2', '系统管理员', 1);
 
 INSERT INTO account(`account_no`, `company`, `bank`, `data_source`, `currency`)
 VALUES ('622200000001', '腾讯科技', '工商银行', '直联', 'CNY'),
