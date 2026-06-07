@@ -60,9 +60,9 @@ sudo systemctl status docker
 
 1. 首先要准备云服务器或者虚拟机，并且这个云服务器/虚拟机上得有 docker & docker-compose，下载方式如上所述
 2. 然把 deploy/dev 上传到云服务器上
-3. 进入 deploy/prd/app/ 目录，执行 docker compose -p finlink -f docker-compose-mid.yml up -d
+3. 进入 deploy/dev/app/ 目录，执行 docker compose -p finlink -f docker-compose-mid.yml up -d
 4. 使用云服务器的话得先开一个隧道连接到 mysql 容器，否则直接在本地连接也可以
-5. 等拉取完 mysql 镜像，进入 mysql 执行 deploy/prd/res/sql/db.sql 文件里的所有 sql 语句
+5. 等拉取完 mysql 镜像，进入 mysql 执行 deploy/dev/res/sql/db.sql 文件里的所有 sql 语句
 
 ### 生产环境搭建
 1. 首先还是准备云服务器，把 docker 和 docker-compose 安装好
