@@ -4,13 +4,26 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://finlink-mysql:3306/finlink_prd?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowMultiQueries=true
-    username: zmbdpprd
-    password: Hf@173503494
+    url: ${DB_URL:jdbc:mysql://finlink-mysql:3306/finlink_prd?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowMultiQueries=true}
+    username: ${DB_USERNAME:zmbdpprd}
+    password: ${DB_PASSWORD:Hf@173503494}
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+
+# JWT 配置
+jwt:
+  # JWT 签名密钥（Base64 编码，生产环境务必配置）
+  # 生成方式：使用 Keys.secretKeyFor(SignatureAlgorithm.HS256) 生成密钥，然后用 Base64 编码
+  # 示例：
+  # Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+  # String secret = Base64.getEncoder().encodeToString(key.getEncoded());
+  secret: ${JWT_SECRET:}
+  # 短期 Token 有效期（毫秒），默认 24 小时
+  expire-short: 86400000
+  # 记住我 Token 有效期（毫秒），默认 7 天
+  expire-remember: 604800000
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
