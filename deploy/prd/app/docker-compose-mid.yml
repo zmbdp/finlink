@@ -31,23 +31,14 @@ services:
     networks:
       - finlink_network_prd
     healthcheck:
-      test: mysql --user=zmbdpprd -h127.0.0.1 --password='Hf@173503494' -e "SELECT 1;"
+      test: mysql --user=${DB_USERNAME} -h127.0.0.1 --password=${DB_PASSWORD} -e "SELECT 1;"
       start_period: 30s
       interval: 10s
       timeout: 5s
       retries: 10
     environment:
       TZ: Asia/Shanghai
-      MYSQL_ROOT_PASSWORD: Hf@173503494
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 20000
-        hard: 40000
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
 
   finlink-backend:
     container_name: finlink-backend
@@ -63,6 +54,10 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: prd
+      DB_URL: jdbc:mysql://finlink-mysql:3306/finlink_prd?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowMultiQueries=true
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
     ulimits:
       nproc: 65535
       nofile:
