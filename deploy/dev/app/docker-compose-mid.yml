@@ -31,14 +31,14 @@ services:
     networks:
       - finlink_network_dev
     healthcheck:
-      test: mysql --user=zmbdpdev -h127.0.0.1 --password='Hf@173503494' -e "SELECT 1;"
+      test: mysql --user=${DB_USERNAME} -h127.0.0.1 --password=${DB_PASSWORD} -e "SELECT 1;"
       start_period: 30s
       interval: 10s
       timeout: 5s
       retries: 10
     environment:
       TZ: Asia/Shanghai
-      MYSQL_ROOT_PASSWORD: Hf@173503494
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ulimits:
       nproc: 65535
       nofile:
