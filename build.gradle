@@ -50,11 +50,17 @@ dependencies {
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // Mockito for mocking
+    testImplementation 'org.mockito:mockito-core:4.11.0'
+    testImplementation 'org.mockito:mockito-inline:4.11.0'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // Swagger (Knife4j) - 基于Swagger的增强版UI
+    implementation 'com.github.xiaoymin:knife4j-spring-boot-starter:3.0.3'
 }
 
 tasks.named('test') {
