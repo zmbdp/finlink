@@ -3,63 +3,11 @@
 ## 资金管理系统快速开始
 
 ### 安装 docker & docker-compose
+1. 把 deploy/prd 目录上传到云服务器上
+2. 进入 deploy/prd 运行 chmod +x install-docker.sh
+3. 再运行 ./install-docker.sh
+4进入 deploy/prd/app/ 运行 docker compose -p finlink -f docker-compose-mid.yml up -d
 
-1. 更新系统软件包
-```bash
-sudo dnf update -y
-```
-2. 安装依赖工具
-```bash
-sudo dnf install -y dnf-plugins-core curl wget
-```
-3. 添加 Docker 官方软件源
-```bash
-sudo dnf config-manager --add-repo https://mirrors.cloud.tencent.com/docker-ce/linux/centos/docker-ce.repo
-```
-4. 更新软件包索引
-```bash
-sudo dnf makecache
-```
-5. 安装 Docker 核心组件
-```bash
-sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-6. 启动 Docker 并设置开机自启
-```bash
-sudo systemctl enable --now docker
-```
-7. 配置镜像加速（推荐）
-```bash
-sudo mkdir -p /etc/docker
-sudo tee /etc/docker/daemon.json <<-'EOF'
-{
-    "registry-mirrors": ["https://mirror.ccs.tencentyun.com"]
-}
-EOF
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-```
-8. 重新加载 systemd 配置
-```bash
-sudo systemctl daemon-reload
-```
-9. 启动 Docker 服务
-```bash
-sudo systemctl start docker
-```
-10. 设置 Docker 开机自启
-```bash
-sudo systemctl enable docker
-```
-11. 查看 Docker 服务运行状态
-```bash
-sudo systemctl status docker
-```
-12. 查看 Docker 版本
-```bash
-docker --version
-docker compose version
-```
 ### 开发环境搭建
 
 1. 首先要准备云服务器或者虚拟机，并且这个云服务器/虚拟机上得有 docker & docker-compose，下载方式如上所述
@@ -82,3 +30,11 @@ docker compose version
 - 后端：把 deploy/prd 上传到云服务器，进入 /app 目录，执行 docker compose -p finlink -f docker-compose-mid.yml up -d
 - 前端：把打包好的 dist 上传到 deploy/prd/app/nginx/web 目录下
 5. 查看效果：访问 http://云服务器ip
+
+---
+## 重装系统演示：
+1. 进入 deploy/prd/ 运行 
+```bash
+chmod +x reset.sh
+```
+2. 再运行 ./reset.sh
