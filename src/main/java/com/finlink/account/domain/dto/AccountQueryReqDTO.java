@@ -1,5 +1,6 @@
 package com.finlink.account.domain.dto;
 
+import com.finlink.common.constants.CommonConstants;
 import lombok.Data;
 
 /**
@@ -33,10 +34,10 @@ public class AccountQueryReqDTO {
     /**
      * 当前页码（从1开始）
      */
-    private Integer pageNum = 1;
+    private Integer pageNum = CommonConstants.DEFAULT_PAGE_NUM;
 
     /**
      * 每页条数
      */
-    private Integer pageSize = 10;
+    private Integer pageSize = CommonConstants.DEFAULT_PAGE_SIZE;
 }
