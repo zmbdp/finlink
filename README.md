@@ -4,25 +4,25 @@
 
 ### 安装 docker & docker-compose
 
-1. 安装依赖工具
+1. 更新系统软件包
 ```bash
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+sudo dnf update -y
 ```
-2. 添加 Docker 官方 GPG 密钥（阿里云镜像）
+2. 安装依赖工具
 ```bash
-curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
+sudo dnf install -y dnf-plugins-core curl wget
 ```
-3. 添加阿里云 Docker 软件源
+3. 添加 Docker 官方软件源
 ```bash
-sudo add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+sudo dnf config-manager --add-repo https://mirrors.cloud.tencent.com/docker-ce/linux/centos/docker-ce.repo
 ```
 4. 更新软件包索引
 ```bash
-sudo apt-get update
+sudo dnf makecache
 ```
 5. 安装 Docker 核心组件
 ```bash
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 6. 启动 Docker 并设置开机自启
 ```bash
@@ -55,11 +55,15 @@ sudo systemctl enable docker
 ```bash
 sudo systemctl status docker
 ```
-
+12. 查看 Docker 版本
+```bash
+docker --version
+docker compose version
+```
 ### 开发环境搭建
 
 1. 首先要准备云服务器或者虚拟机，并且这个云服务器/虚拟机上得有 docker & docker-compose，下载方式如上所述
-2. 然把 deploy/dev 上传到云服务器上
+2. 然后把 deploy/dev 上传到云服务器上
 3. 进入 deploy/dev/app/ 目录，执行 docker compose -p finlink -f docker-compose-mid.yml up -d
 4. 使用云服务器的话得先开一个隧道连接到 mysql 容器，否则直接在本地连接也可以
 5. 等拉取完 mysql 镜像，进入 mysql 执行 deploy/dev/res/sql/db.sql 文件里的所有 sql 语句
