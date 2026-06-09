@@ -6,7 +6,6 @@ import com.finlink.account.domain.vo.AccountPageVO;
 import com.finlink.account.domain.vo.AccountVO;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 /**
  * 账号服务接口
