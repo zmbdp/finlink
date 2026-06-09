@@ -57,10 +57,12 @@ public class AccountServiceImpl implements IAccountService {
      */
     @Override
     public AccountPageVO listPage(AccountQueryReqDTO reqDTO) {
+        // 构建查询条件并执行分页查询
         LambdaQueryWrapper<Account> wrapper = buildQueryWrapper(reqDTO);
         Page<Account> page = accountMapper.selectPage(
                 new Page<>(reqDTO.getPageNum(), reqDTO.getPageSize()), wrapper);
 
+        // 将实体列表转换为 VO 列表并组装分页结果
         AccountPageVO pageVO = new AccountPageVO();
         pageVO.setTotal(page.getTotal());
         pageVO.setRecords(BeanCopyUtil.copyListProperties(page.getRecords(), AccountVO.class));
@@ -76,6 +78,7 @@ public class AccountServiceImpl implements IAccountService {
      */
     @Override
     public AccountVO getById(Long id) {
+        // 根据 ID 查询账号，不存在则抛出业务异常
         Account account = accountMapper.selectById(id);
         if (account == null) {
             throw new ServiceException(CommonConstants.ERROR_MSG_ACCOUNT_NOT_FOUND);
@@ -93,7 +96,7 @@ public class AccountServiceImpl implements IAccountService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void add(AccountSaveReqDTO reqDTO) {
-        // 校验账号唯一性
+        // 校验账号唯一性：同一账号号不允许重复
         Long count = accountMapper.selectCount(
                 new LambdaQueryWrapper<Account>()
                         .eq(Account::getAccountNo, reqDTO.getAccountNo())
@@ -101,6 +104,8 @@ public class AccountServiceImpl implements IAccountService {
         if (count > 0) {
             throw new ServiceException(CommonConstants.ERROR_MSG_ACCOUNT_EXISTS);
         }
+
+        // 拷贝属性并插入新账号记录
         Account account = BeanCopyUtil.copyProperties(reqDTO, Account.class);
         accountMapper.insert(account);
     }
@@ -116,12 +121,13 @@ public class AccountServiceImpl implements IAccountService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void edit(Long id, AccountSaveReqDTO reqDTO) {
+        // 查询旧记录，不存在则抛出异常
         Account old = accountMapper.selectById(id);
         if (old == null) {
             throw new ServiceException(CommonConstants.ERROR_MSG_ACCOUNT_NOT_FOUND);
         }
 
-        // 如果账号号发生变更，校验新账号唯一性
+        // 如果账号号发生变更，需校验新账号号的唯一性
         if (!old.getAccountNo().equals(reqDTO.getAccountNo())) {
             Long count = accountMapper.selectCount(
                     new LambdaQueryWrapper<Account>().eq(Account::getAccountNo, reqDTO.getAccountNo())
@@ -131,12 +137,12 @@ public class AccountServiceImpl implements IAccountService {
             }
         }
 
-        // 更新账号表
+        // 更新账号表基本信息
         Account account = BeanCopyUtil.copyProperties(reqDTO, Account.class);
         account.setId(id);
         accountMapper.updateById(account);
 
-        // 同步更新流水表本方账号信息
+        // 同步更新流水表中的本方账号相关信息（公司、银行、币种）
         transactionFlowMapper.syncUpdateByAccountNo(
                 old.getAccountNo(),
                 reqDTO.getAccountNo(),
@@ -145,7 +151,7 @@ public class AccountServiceImpl implements IAccountService {
                 reqDTO.getCurrency()
         );
 
-        // 同步更新流水表对方账号信息（其他账号的流水中，对方是当前账号的也需要更新）
+        // 同步更新流水表中的对方账号信息（其他账号流水中对方为当前账号的场景）
         transactionFlowMapper.syncUpdateByCounterpartAccountNo(
                 old.getAccountNo(),
                 reqDTO.getAccountNo(),
@@ -163,17 +169,19 @@ public class AccountServiceImpl implements IAccountService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
+        // 查询待删除账号，不存在则抛出异常
         Account account = accountMapper.selectById(id);
         if (account == null) {
             throw new ServiceException(CommonConstants.ERROR_MSG_ACCOUNT_NOT_FOUND);
         }
 
-        // 检查是否有关联的流水记录
+        // 检查是否有关联流水记录，若存在则禁止删除
         int flowCount = transactionFlowMapper.countByAccountNo(account.getAccountNo());
         if (flowCount > 0) {
             throw new ServiceException(String.format(CommonConstants.ERROR_MSG_ACCOUNT_HAS_FLOWS, flowCount));
         }
 
+        // 执行删除
         accountMapper.deleteById(id);
     }
 
@@ -187,10 +195,12 @@ public class AccountServiceImpl implements IAccountService {
      */
     @Override
     public void export(AccountQueryReqDTO reqDTO, HttpServletResponse response) {
+        // 查询符合条件的账号数据并转换为 Excel VO
         LambdaQueryWrapper<Account> wrapper = buildQueryWrapper(reqDTO);
         List<Account> list = accountMapper.selectList(wrapper);
         List<AccountExcelVO> voList = BeanCopyUtil.copyListProperties(list, AccountExcelVO.class);
 
+        // 组装文件名并设置响应头，触发浏览器下载
         String fileName = CommonConstants.EXCEL_FILE_NAME_ACCOUNT + LocalDate.now().format(DateTimeFormatter.ofPattern(CommonConstants.DATE_FORMAT_SHORT)) + CommonConstants.EXCEL_FILE_SUFFIX;
         response.setContentType(CommonConstants.EXCEL_CONTENT_TYPE);
         response.setCharacterEncoding(CommonConstants.UTF8);
@@ -204,11 +214,11 @@ public class AccountServiceImpl implements IAccountService {
     }
 
     /**
-     * 构建查询条件
+     * 构建账号查询条件 Wrapper。
      * <p>根据请求 DTO 构建 MyBatis-Plus 的查询 wrapper，支持模糊匹配和精确匹配</p>
      *
-     * @param reqDTO 查询条件
-     * @return 查询 wrapper
+     * @param reqDTO 前端传入的查询参数
+     * @return 组装后的 MyBatis-Plus 查询 Wrapper
      */
     private LambdaQueryWrapper<Account> buildQueryWrapper(AccountQueryReqDTO reqDTO) {
         return new LambdaQueryWrapper<Account>()

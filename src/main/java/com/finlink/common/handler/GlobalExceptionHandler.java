@@ -1,15 +1,12 @@
 package com.finlink.common.handler;
 
-import com.finlink.common.domain.Result;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolationException;
 import com.finlink.common.constants.CommonConstants;
-
+import com.finlink.common.domain.Result;
 import com.finlink.common.domain.ResultCode;
 import com.finlink.common.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shiro.authc.AuthenticationException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -18,6 +15,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -115,7 +115,7 @@ public class GlobalExceptionHandler {
      * @param errCode  错误码，必须是至少 3 位数字（如 400001）
      */
     private void setResponseCode(HttpServletResponse response, Integer errCode) {
-        // 把前面三个拿出来返回给前端，设置 http 响应码
+        // 提取错误码前三位作为 HTTP 响应状态码
         int httpCode = Integer.parseInt(String.valueOf(errCode).substring(0, 3));
         response.setStatus(httpCode);
     }
@@ -252,6 +252,25 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理 Shiro 认证异常
+     * <p>
+     * 处理用户登录认证失败时抛出的异常，包括用户名不存在、密码错误等情况。
+     * </p>
+     *
+     * @param e        认证异常
+     * @param request  HTTP 请求对象
+     * @param response HTTP 响应对象
+     * @return 认证失败响应结果
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public Result<?> handleAuthenticationException(AuthenticationException e, HttpServletRequest request, HttpServletResponse response) {
+        String requestURI = request.getRequestURI();
+        log.error("请求地址: '{}', 认证失败", requestURI, e);
+        setResponseCode(response, ResultCode.USERNAME_OR_PASSWORD_ERROR.getCode());
+        return Result.fail(ResultCode.USERNAME_OR_PASSWORD_ERROR.getCode(), ResultCode.USERNAME_OR_PASSWORD_ERROR.getErrMsg());
+    }
+
+    /**
      * 处理参数校验异常（@Valid 注解）
      * <p>
      * 处理使用 {@code @Valid} 注解进行参数校验时抛出的异常。<br>
@@ -334,12 +353,12 @@ public class GlobalExceptionHandler {
      * @return 合并后的错误信息字符串，多个错误用分号分隔；如果没有错误返回空字符串
      */
     private String joinMessage(MethodArgumentNotValidException e) {
-        // 先获取所有异常信息的列表
+        // 获取所有校验错误信息
         List<ObjectError> allErrors = e.getAllErrors();
         if (CollectionUtils.isEmpty(allErrors)) {
             return CommonConstants.EMPTY_STR;
         }
-        // 流处理获取异常信息
+        // 使用流处理将所有错误信息用分号拼接
         return allErrors
                 .stream() // 获取所有错误信息
                 .map(ObjectError::getDefaultMessage) // 获取所有错误信息

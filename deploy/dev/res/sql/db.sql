@@ -12,7 +12,7 @@ CREATE TABLE `sys_user`
     `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     UNIQUE KEY uk_username(`username`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '系统用户表';
+) ENGINE = InnoDB AUTO_INCREMENT = 10000001 DEFAULT CHARSET = utf8mb4 COMMENT = '系统用户表';
 
 DROP TABLE IF EXISTS `account`;
 CREATE TABLE `account`
@@ -30,7 +30,7 @@ CREATE TABLE `account`
     KEY           idx_company(`company`),
     KEY           idx_bank(`bank`),
     KEY           idx_currency(`currency`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '账号表';
+) ENGINE = InnoDB AUTO_INCREMENT = 10000001 DEFAULT CHARSET = utf8mb4 COMMENT = '账号表';
 
 DROP TABLE IF EXISTS `transaction_flow`;
 CREATE TABLE `transaction_flow`
@@ -55,7 +55,7 @@ CREATE TABLE `transaction_flow`
     KEY                   idx_trade_type(`trade_type`),
     KEY                   idx_create_time(`create_time`),
     KEY                   idx_account_time(`our_account`, `create_time`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '流水表';
+) ENGINE = InnoDB AUTO_INCREMENT = 10000001 DEFAULT CHARSET = utf8mb4 COMMENT = '流水表';
 
 DROP TABLE IF EXISTS `trade_type`;
 CREATE TABLE `trade_type`
@@ -67,7 +67,7 @@ CREATE TABLE `trade_type`
     `update_time` DATETIME NOT NULL COMMENT '更新时间',
     `is_deleted`  TINYINT DEFAULT 0 COMMENT '是否删除(0否 1是)',
     INDEX         `idx_sort_order` (`sort_order`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT '交易类型表';
+) ENGINE = InnoDB AUTO_INCREMENT = 10000001 DEFAULT CHARSET = utf8mb4 COMMENT '交易类型表';
 
 -- =============================================
 -- 初始化数据
