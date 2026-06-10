@@ -6,7 +6,7 @@
 1. 把 deploy/prd 目录上传到云服务器上
 2. 进入 deploy/prd 运行 chmod +x install-docker.sh
 3. 再运行 ./install-docker.sh
-4进入 deploy/prd/app/ 运行 docker compose -p finlink -f docker-compose-mid.yml up -d
+4. 进入 deploy/prd/app/ 运行 docker compose -p finlink -f docker-compose-mid.yml up -d
 
 ### 开发环境搭建
 
