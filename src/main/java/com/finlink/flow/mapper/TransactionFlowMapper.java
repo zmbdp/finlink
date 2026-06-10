@@ -51,4 +51,3 @@ public interface TransactionFlowMapper extends BaseMapper<TransactionFlow> {
      */
     int countByAccountNo(@Param("accountNo") String accountNo);
 }
-

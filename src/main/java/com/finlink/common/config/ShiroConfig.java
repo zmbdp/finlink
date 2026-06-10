@@ -1,9 +1,8 @@
 package com.finlink.common.config;
 
-import com.finlink.common.shiro.BCryptCredentialsMatcher;
 import com.finlink.common.filter.JwtFilter;
-import com.finlink.common.shiro.UserRealm;
-import org.apache.shiro.mgt.SecurityManager;
+import com.finlink.common.security.BCryptCredentialsMatcher;
+import com.finlink.common.security.UserRealm;
 import org.apache.shiro.session.mgt.DefaultSessionManager;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
@@ -22,6 +21,37 @@ import java.util.Map;
  */
 @Configuration
 public class ShiroConfig {
+
+    /**
+     * 构建 Shiro 过滤链定义规则
+     * <p>
+     * 配置系统中各 URL 路径对应的访问控制策略，包括：
+     * <ul>
+     *     <li>Swagger/Knife4j 文档相关路径：匿名访问（anon）</li>
+     *     <li>登录相关接口：匿名访问（anon）</li>
+     *     <li>其他所有路径：JWT 认证（jwt）</li>
+     * </ul>
+     * <p>
+     * 使用 {@link LinkedHashMap} 保证规则按添加顺序匹配，确保 "/**" 通配规则最后生效
+     *
+     * @return 过滤链定义映射，key 为 URL 路径模式，value 为对应的过滤器名称
+     */
+    private Map<String, String> buildFilterChainDefinitions() {
+        Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
+        // Swagger/Knife4j 相关路径放行
+        filterChainDefinitionMap.put("/doc.html", "anon");
+        filterChainDefinitionMap.put("/swagger-resources/**", "anon");
+        filterChainDefinitionMap.put("/v2/api-docs", "anon");
+        filterChainDefinitionMap.put("/v2/api-docs-ext", "anon");
+        filterChainDefinitionMap.put("/webjars/**", "anon");
+        filterChainDefinitionMap.put("/favicon.ico", "anon");
+        // 登录相关路径放行
+        filterChainDefinitionMap.put("/api/login", "anon");
+        filterChainDefinitionMap.put("/api/unauth", "anon");
+        // 其他所有接口使用 JWT 过滤器
+        filterChainDefinitionMap.put("/**", "jwt");
+        return filterChainDefinitionMap;
+    }
 
     /**
      * BCrypt 密码匹配器
@@ -69,13 +99,18 @@ public class ShiroConfig {
 
     /**
      * Shiro 过滤器工厂
-     * <p>配置 URL 拦截规则：/api/login 和 /api/unauth 匿名访问，其余走JWT认证</p>
+     * <p>配置 URL 拦截规则：
+     * <ul>
+     *     <li>Swagger/Knife4j 文档路径：匿名访问</li>
+     *     <li>登录相关接口（/api/login、/api/unauth）：匿名访问</li>
+     *     <li>其他所有路径：JWT 认证</li>
+     * </ul>
      *
      * @param securityManager 安全管理器
      * @return ShiroFilterFactoryBean 实例
      */
     @Bean
-    public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager) {
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(DefaultWebSecurityManager securityManager) {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         shiroFilterFactoryBean.setSecurityManager(securityManager);
 
@@ -84,13 +119,7 @@ public class ShiroConfig {
         filters.put("jwt", new JwtFilter());
         shiroFilterFactoryBean.setFilters(filters);
 
-        Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
-        filterChainDefinitionMap.put("/api/login", "anon");
-        filterChainDefinitionMap.put("/api/unauth", "anon");
-        // 其他所有接口使用 JWT 过滤器
-        filterChainDefinitionMap.put("/**", "jwt");
-
-        shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
+        shiroFilterFactoryBean.setFilterChainDefinitionMap(buildFilterChainDefinitions());
         return shiroFilterFactoryBean;
     }
 }

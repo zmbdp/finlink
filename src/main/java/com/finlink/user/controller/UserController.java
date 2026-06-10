@@ -7,6 +7,8 @@ import com.finlink.user.domain.dto.LoginDTO;
 import com.finlink.user.domain.dto.LoginReqDTO;
 import com.finlink.user.domain.vo.LoginVO;
 import com.finlink.user.service.IUserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
  *
  * @author 稚名不带撇
  */
+@Api(tags = "用户认证模块")
 @RestController
 @RequestMapping("/api")
 public class UserController {
@@ -34,14 +37,12 @@ public class UserController {
      * @param loginReqDTO 登录请求参数，包含用户名、密码及记住我选项
      * @return 登录成功返回包含 token 的响应数据
      */
+    @ApiOperation("用户登录")
     @PostMapping("/login")
     public Result<LoginVO> login(@RequestBody @Validated LoginReqDTO loginReqDTO) {
-        try {
-            LoginDTO loginDTO = userService.login(loginReqDTO);
-            return Result.success(BeanCopyUtil.copyProperties(loginDTO, LoginVO.class));
-        } catch (Exception e) {
-            return Result.fail(ResultCode.ERROR_PHONE_FORMAT.getCode(), ResultCode.ERROR_PHONE_FORMAT.getErrMsg());
-        }
+        // 调用服务层完成登录认证，并将 DTO 转换为 VO 返回
+        LoginDTO loginDTO = userService.login(loginReqDTO);
+        return Result.success(BeanCopyUtil.copyProperties(loginDTO, LoginVO.class));
     }
 
     /**
@@ -50,6 +51,7 @@ public class UserController {
      *
      * @return 登出成功响应
      */
+    @ApiOperation("用户登出")
     @PostMapping("/logout")
     public Result<Void> logout() {
         userService.logout();
@@ -60,6 +62,7 @@ public class UserController {
      * 未授权处理接口
      * <p>当用户未登录或权限不足时返回统一错误信息</p>
      */
+    @ApiOperation("未授权处理")
     @GetMapping("/unauth")
     public Result<Void> unauth() {
         return Result.fail(ResultCode.LOGIN_STATUS_OVERTIME.getCode(), ResultCode.LOGIN_STATUS_OVERTIME.getErrMsg());

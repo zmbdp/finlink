@@ -7,6 +7,7 @@ import com.finlink.user.domain.dto.LoginReqDTO;
 import com.finlink.user.domain.entity.User;
 import com.finlink.user.mapper.UserMapper;
 import com.finlink.user.service.IUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
  *
  * @author 稚名不带撇
  */
+@Slf4j
 @Service
 public class UserServiceImpl implements IUserService {
 
@@ -36,6 +38,7 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public User findByUsername(String username) {
+        // 根据用户名查询用户，限制返回一条记录
         LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper
                 .eq(User::getUsername, username)
@@ -56,12 +59,12 @@ public class UserServiceImpl implements IUserService {
         String password = loginReqDTO.getPassword();
         Boolean rememberMe = loginReqDTO.getRememberMe();
 
-        // 使用 Shiro 进行登录认证，直接传入明文密码由 BCryptCredentialsMatcher 负责验证
+        // 使用 Shiro 进行登录认证，明文密码由 BCryptCredentialsMatcher 负责校验
         Subject subject = SecurityUtils.getSubject();
         UsernamePasswordToken token = new UsernamePasswordToken(username, password);
         subject.login(token);
 
-        // 认证成功，生成 JWT Token
+        // 认证通过后查询用户信息并生成 JWT Token
         User user = findByUsername(username);
         boolean isRememberMe = rememberMe != null && rememberMe;
         String jwtToken = JwtUtil.createToken(
@@ -70,7 +73,7 @@ public class UserServiceImpl implements IUserService {
                 isRememberMe // 是否记住我
         );
 
-        // 组装返回数据
+        // 组装登录响应数据
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setUsername(username);
         loginDTO.setToken(jwtToken);  // 返回 JWT Token 而不是 Session ID
@@ -84,6 +87,7 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public void logout() {
+        // 获取当前 Shiro Subject 并执行登出操作
         Subject subject = SecurityUtils.getSubject();
         subject.logout();
     }

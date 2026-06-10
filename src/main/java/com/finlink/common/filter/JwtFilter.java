@@ -52,7 +52,7 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
             getSubject(request, response).login(jwtToken);
             return true;
         } catch (Exception e) {
-            // 登录失败（如用户被禁用等），拒绝访问
+            // 登录失败（如用户被禁用、Token 解析异常等），拒绝访问
             return false;
         }
     }
